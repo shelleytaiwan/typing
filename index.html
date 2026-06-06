@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中文打字練習</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;background:#1a1a2e;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem}
+#app{background:#16213e;border-radius:20px;padding:2rem;max-width:760px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5);border:1px solid #0f3460}
+
+h1{font-size:24px;font-weight:700;color:#e2e8f0;margin-bottom:4px;letter-spacing:1px}
+.sub{font-size:13px;color:#64748b;margin-bottom:1.5rem}
+
+/* Start Screen */
+.start-card{background:#0f3460;border-radius:16px;padding:2.5rem;text-align:center;margin-bottom:1rem;border:1px solid #1e5799}
+.start-card p{font-size:15px;color:#94a3b8;margin-bottom:1.5rem;line-height:1.8}
+.tog{font-size:14px;color:#94a3b8;display:inline-flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:1.5rem;user-select:none}
+.tog input{accent-color:#4d9de0;width:16px;height:16px}
+
+/* Stats bar */
+.stats{display:flex;gap:10px;margin-bottom:1rem}
+.st{flex:1;background:#0f3460;border-radius:12px;padding:12px;text-align:center;border:1px solid #1e5799}
+.stn{font-size:26px;font-weight:700;color:#e2e8f0}
+.stl{font-size:11px;color:#64748b;margin-top:2px;letter-spacing:.5px}
+
+/* Display area - KTV style */
+.darea{background:#0a0a1a;border-radius:14px;padding:1.5rem 1.5rem 1rem;margin-bottom:1rem;min-height:130px;border:1px solid #0f3460;position:relative}
+.dtitle{font-size:12px;color:#4d9de0;margin-bottom:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.cw{display:flex;flex-wrap:wrap;align-items:flex-start;gap:2px 0}
+
+/* Character cells */
+.ch{display:inline-flex;flex-direction:column;align-items:center;margin:2px 3px;transition:transform .1s}
+.hz{font-size:32px;line-height:1.15;padding:2px 5px;border-radius:5px;transition:color .12s,background .12s,text-shadow .12s}
+.py{font-size:10px;min-height:14px;text-align:center;letter-spacing:.3px;transition:color .12s}
+
+/* States */
+.ch.pending .hz{color:#334155}
+.ch.pending .py{color:#1e3a5f}
+
+.ch.cur .hz{color:#fff;background:#4d9de0;text-shadow:0 0 12px rgba(77,157,224,.8);animation:pulse .8s ease-in-out infinite}
+.ch.cur .py{color:#7eb8e8}
+
+.ch.correct .hz{color:#60c8ff;text-shadow:0 0 8px rgba(96,200,255,.5)}
+.ch.correct .py{color:#2a6a9a}
+
+.ch.wrong .hz{color:#ff6b8a;text-shadow:0 0 8px rgba(255,107,138,.6)}
+.ch.wrong .py{color:#7a2030}
+
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(77,157,224,.4)}50%{box-shadow:0 0 0 6px rgba(77,157,224,0)}}
+
+/* Input */
+.inp-wrap{position:relative;margin-bottom:.75rem}
+textarea#inp{width:100%;padding:14px 18px;font-size:20px;border-radius:12px;border:2px solid #0f3460;background:#0a0a1a;color:#e2e8f0;outline:none;resize:none;height:64px;overflow:hidden;font-family:inherit;display:block;transition:border-color .2s,box-shadow .2s}
+textarea#inp:focus{border-color:#4d9de0;box-shadow:0 0 0 4px rgba(77,157,224,.15)}
+.hint{font-size:12px;color:#334155;line-height:1.6;margin-bottom:1rem}
+
+/* Output button */
+.btn-out{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#4d9de0,#185FA5);color:#fff;cursor:pointer;font-size:16px;font-family:inherit;font-weight:700;letter-spacing:1px;transition:opacity .2s,transform .1s;margin-bottom:.5rem}
+.btn-out:hover{opacity:.9}
+.btn-out:active{transform:scale(.98)}
+
+/* Result */
+.rc{background:#0f3460;border-radius:16px;padding:2.5rem;text-align:center;border:1px solid #1e5799}
+.rc-label{font-size:13px;color:#64748b;letter-spacing:1px;margin-bottom:.5rem}
+.big{font-size:64px;font-weight:700;color:#60c8ff;margin:.25rem 0;text-shadow:0 0 20px rgba(96,200,255,.4)}
+.big span{font-size:22px;font-weight:400;color:#94a3b8}
+.enc{font-size:20px;font-weight:700;color:#ffd166;margin:1rem 0 .5rem;letter-spacing:.5px}
+.meta{font-size:14px;color:#64748b;margin-bottom:1.5rem}
+.meta b{color:#94a3b8}
+.btns{display:flex;gap:12px;justify-content:center}
+button.btnp{padding:12px 32px;border-radius:12px;border:none;background:linear-gradient(135deg,#4d9de0,#185FA5);color:#fff;cursor:pointer;font-size:15px;font-family:inherit;font-weight:700;transition:opacity .2s}
+button.btns2{padding:12px 24px;border-radius:12px;border:2px solid #0f3460;background:transparent;color:#94a3b8;cursor:pointer;font-size:15px;font-family:inherit;transition:background .2s}
+button.btnp:hover{opacity:.85}
+button.btns2:hover{background:#0f3460}
+
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+
+/* Streak flash */
+.correct-flash{animation:flash .25s ease-out}
+@keyframes flash{0%{background:#0d2a1a}100%{background:#0a0a1a}}
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>中文打字練習 ✦</h1>
+  <p class="sub">僑委會《來！學華語》繁體課文</p>
+
+  <!-- Start -->
+  <div id="ss">
+    <div class="start-card">
+      <p>打對的字馬上變<span style="color:#60c8ff;font-weight:700">藍色</span>，打錯變<span style="color:#ff6b8a;font-weight:700">紅色</span><br>打完整篇文章，按「輸出成績」看速度和評語</p>
+      <label class="tog"><input type="checkbox" id="pyck" checked> 顯示拼音</label><br>
+      <button class="btn-out" style="max-width:220px;margin:0 auto;display:block" onclick="startGame()">開始練習</button>
+    </div>
+  </div>
+
+  <!-- Game -->
+  <div id="gs" style="display:none">
+    <div class="row">
+      <span id="lessonlbl" style="font-size:13px;color:#4d9de0;font-weight:700"></span>
+      <label class="tog" style="margin:0"><input type="checkbox" id="pyck2" checked onchange="togglePY()"> 拼音</label>
+    </div>
+    <div class="stats">
+      <div class="st"><div class="stn" id="sw">0</div><div class="stl">已打字數</div></div>
+      <div class="st"><div class="stn" id="se">0</div><div class="stl">錯誤次數</div></div>
+      <div class="st"><div class="stn" id="sa">－</div><div class="stl">正確率</div></div>
+      <div class="st"><div class="stn" id="spg">0%</div><div class="stl">完成進度</div></div>
+    </div>
+    <div class="darea" id="darea">
+      <div class="dtitle" id="dt"></div>
+      <div class="cw" id="cw"></div>
+    </div>
+    <div class="inp-wrap">
+      <textarea id="inp" placeholder="點這裡，用拼音輸入法打字…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+    </div>
+    <p class="hint">打對→藍色 ✦ 打錯→紅色，繼續打下一個字 ✦ 標點自動跳過 ✦ 打完整篇文章後按輸出</p>
+    <div style="display:flex;gap:10px;margin-bottom:.5rem">
+      <button class="btn-out" id="outbtn" onclick="showResult()" disabled style="opacity:.35;margin-bottom:0;flex:1">輸出成績（打完全篇再按）</button>
+      <button class="btn-out" id="nextbtn" onclick="nextPassage()" style="margin-bottom:0;flex:0 0 auto;width:auto;padding:14px 20px;background:linear-gradient(135deg,#2d6a4f,#1b4332);letter-spacing:.5px">換下一篇 ↻</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="rs" style="display:none">
+    <div class="rc">
+      <p class="rc-label">你的成績</p>
+      <div class="big"><span id="rcpm">0</span> <span>字／分鐘</span></div>
+      <p class="enc" id="renc"></p>
+      <p class="meta">用時：<b id="rtime">0</b>秒　總字數：<b id="rtot">0</b>　錯誤：<b id="rerr">0</b>　正確率：<b id="racc">－</b></p>
+      <div class="btns">
+        <button class="btnp" onclick="startGame()">再練一次</button>
+        <button class="btnp" style="background:linear-gradient(135deg,#2d6a4f,#1b4332)" onclick="nextPassage()">換下一篇</button>
+        <button class="btns2" onclick="goHome()">回主畫面</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var PASSAGES=[
+  {t:"課文：友美的生日",
+   p:"這個星期天是友美的生日，她請我、中明和國安一起去她家玩。我們送友美花、兩本中文書、兩枝可愛的小鉛筆和一個大蛋糕，她很喜歡這些禮物。友美請我們吃點心和水果，今天大家都很開心。"},
+  {t:"課文：高莉亞的工作",
+   p:"高莉亞在一家賣手機的公司工作，公司有三十幾個人。她有幾個臺灣同事，高莉亞很喜歡跟他們說中文。高莉亞早上六點半起床，起床以後，先洗澡洗頭髮，然後吃早飯。她平常吃一個蛋，喝一杯果汁。吃了早飯，開車去上班。中午休息的時候，她常常在公司一樓的餐廳吃漢堡喝可樂，有時候還吃一個冰淇淋。五點下班，五點半離開辦公室。"},
+  {t:"課文：高莉亞的下班後",
+   p:"到了家以後，高莉亞先帶狗出去散步，差不多走二十幾分鐘，然後回家做晚飯。她先生何希常常跟她一起做飯。吃了晚飯，高莉亞喜歡聽聽音樂、看看書。何希常常在網路看看電影、玩玩電腦遊戲。這個星期六高莉亞的朋友要來吃晚飯，她得跟何希一起準備晚飯，所以週末他們一定都很忙。"},
+  {t:"短信：給陳老師請假",
+   p:"陳老師好。不好意思，我感冒了，要請假。明天不能去上課。很抱歉，要麻煩您代課了。對不起。謝謝您！"},
+  {t:"第1課　今天天氣很好",
+   p:"在臺灣，春天和秋天的天氣很舒服，不冷也不熱，可是夏天太熱了。明文覺得美國的夏天比臺灣的夏天舒服，他可以出去跑步、打網球。美國冬天常常下雪，他很喜歡下雪的時候在家聽音樂。"},
+  {t:"第2課　買禮物",
+   p:"明文下個星期二回臺灣，他想給家人買禮物。他想給爸爸買一個背包，給媽媽買一個帽子，他還想給姊姊買兩盒巧克力。因為明文不喜歡逛街，所以他想上網買。"},
+  {t:"第3課　紅燒魚非常好吃",
+   p:"明文、麗莎和高莉亞週末一起去餐廳吃飯。聽說那家餐廳酸辣湯和紅燒魚都做得很好。他們點了三碗酸辣湯，還點了一盤炒青菜和一個炸豆腐。因為明文什麼魚都不吃，所以他們沒點紅燒魚。"},
+  {t:"第4課　我要一杯熱咖啡",
+   p:"麗莎和高莉亞在一家咖啡店喝咖啡。那家咖啡店的蛋糕做得很好，因為她們都愛吃甜的東西，所以一起點一塊大蛋糕。麗莎還點一杯大杯的冰紅茶和一個雞肉三明治。高莉亞只點一杯小杯的熱牛奶。"},
+  {t:"第5課　這件外套怎麼樣",
+   p:"今天高莉亞和麗莎去百貨公司買東西。高莉亞想買一條黑色的裙子和一件運動衫。因為麗莎最近胖了，所以要買一條大號的長褲。雖然她們都覺得白色的裙子很好看，可是也覺得裙子太貴了。"},
+  {t:"第6課　我們下個月搬家",
+   p:"凱文現在住在東區，可是他的公司在南區，所以他天天開車上班。從他家開車到公司要開一個鐘頭，凱文覺得太遠了。他想搬到南區，那裡離公司比較近，也想搬到附近有游泳池的地方。"},
+  {t:"第7課　超級市場在游泳池旁邊",
+   p:"今天我去凱文家。他家不大，只有一個房間和一間浴室，沒有廚房。他家的旁邊有一家超級市場，對面有一個大公園。凱文喜歡運動，他常去公園跑步。因為晚上天氣不冷不熱，所以我們去公園散步聊天。"},
+  {t:"第8課　高莉亞的一天",
+   p:"今天是星期六，何希早上九點起床。起床以後，他先洗澡，然後帶狗出去散步。回家以後，何希跟高莉亞一起準備早飯。吃了早飯，高莉亞去洗衣服，何希在客廳玩電腦遊戲。"},
+  {t:"第9課　我感冒了",
+   p:"何希早上起床以後說他身體不舒服。他說他肚子和頭都很痛，所以高莉亞跟他一起去醫院看醫生。醫生看了以後說何希感冒了，應該多喝水、多休息，但是不需要吃藥。所以何希今天沒去上班。"},
+  {t:"第10課　高莉亞想去臺灣",
+   p:"高莉亞最近很忙，也很累，但是她下個月有四個星期的假期，可以休息。因為她沒去過亞洲，所以她打算休假的時候去臺灣旅行。明文今年夏天在臺灣，所以他要帶高莉亞去有意思的地方看看，高莉亞很高興。"},
+  {t:"短文1　網上購物",
+   p:"現在很多人喜歡網上購物，因為方便又省時間。只需要用手機下單，商品就會送到家裡。不過，要注意選擇信譽好的商店，避免買到假貨。"},
+  {t:"短文2　健康飲食",
+   p:"為了保持健康，我們應該多吃蔬菜水果，少吃油膩和太甜的食物。每天喝足夠的水也很重要。養成良好的飲食習慣，身體才會更好。"},
+  {t:"短文3　學習外語",
+   p:"學習外語需要耐心和方法。每天堅持練習聽、說、讀、寫，效果會更好。看電影或聽音樂也能幫助提高語言能力。"},
+  {t:"短文4　週末計畫",
+   p:"這個週末我打算和朋友去看電影，然後一起吃晚飯。如果天氣好，我們可能去公園散步。放鬆一下，準備迎接新的一週。"},
+  {t:"短文5　環保生活",
+   p:"我們應該減少使用塑膠袋，隨手關燈，節約用水。垃圾分類也很重要。每個人都出一份力，地球會變得更乾淨、更美麗。"},
+  {t:"短文6　上海旅行",
+   p:"上個月我去上海旅行，那邊的建築很現代，食物也很好吃。我參觀了博物館和公園，拍了很多照片。希望下次能再去。"},
+  {t:"短文7　時間管理",
+   p:"合理安排時間能提高效率。可以先把重要的事情做完，再處理小事。避免浪費時間在沒有意義的活動上，生活會更有條理。"},
+  {t:"短文8　手機生活",
+   p:"手機已經成為生活中不可缺少的工具。我們可以用它來聯絡朋友、查資料、付錢。但也要注意控制使用時間，保護眼睛。"},
+  {t:"短文9　面試技巧",
+   p:"面試時要穿著整齊，態度自信。回答問題要清楚、誠實。提前了解公司的背景，準備好自我介紹，會讓印象分數更高。"},
+  {t:"短文10　銀行開戶",
+   p:"去銀行開戶需要帶身份證和印章。填寫表格後，銀行會給你一張提款卡。設定密碼時要記住，不要告訴別人。"},
+  {t:"短文11　天氣變化",
+   p:"最近天氣變化很大，早上很熱，晚上卻變冷。出門最好帶一件外套，避免感冒。記得看天氣預報，提前做好準備。"},
+  {t:"短文12　搬家",
+   p:"上個月我搬家了，新家離公司更近，交通很方便。整理東西花了不少時間，但住進來後覺得很舒服。鄰居也很友好。"},
+  {t:"短文13　圖書館",
+   p:"在圖書館要保持安靜，不能吃東西。借書需要辦借書證，記得按時歸還。圖書館是學習和閱讀的好地方。"},
+  {t:"短文14　運動習慣",
+   p:"運動能增強體力，改善心情。每週運動三次，每次半小時，就能感受到變化。跑步、游泳或瑜伽都是不錯的選擇。"},
+  {t:"短文15　修燈",
+   p:"家裡的燈壞了，我打電話請師傅來修。他檢查了電線，很快就修好了。學會簡單的修理方法，有時可以自己解決問題。"},
+  {t:"短文16　上班交通",
+   p:"上班可以選擇捷運、公車或騎自行車。捷運準時但人多，公車便宜但可能塞車。根據距離和時間選擇最適合的方式。"},
+  {t:"短文17　生日派對",
+   p:"朋友為我辦了生日派對，大家吃了蛋糕，唱了生日歌。我收到很實用的禮物，非常開心。這是一個難忘的日子。"},
+  {t:"短文18　感冒了",
+   p:"感冒的時候要多休息、多喝水。如果發燒或咳嗽很嚴重，應該去看醫生。按時吃藥，病才會快點好起來。"},
+  {t:"短文19　找工作",
+   p:"找工作可以先在網上看招聘資訊。準備好履歷，投給適合的公司。面試前要練習回答問題，保持積極的態度。"},
+  {t:"短文20　家人溝通",
+   p:"家人之間應該多溝通，互相理解。如果有不同意見，可以冷靜地討論，不要吵架。良好的家庭關係讓生活更快樂。"}
+];
+
+var PY={"在":"zài","臺":"Tái","灣":"wān","春":"chūn","天":"tiān","和":"hé","秋":"qiū","氣":"qì","很":"hěn","舒":"shū","服":"fú","不":"bù","冷":"lěng","也":"yě","熱":"rè","可":"kě","是":"shì","夏":"xià","太":"tài","了":"le","明":"míng","文":"wén","覺":"jué","得":"de","美":"měi","國":"guó","的":"de","比":"bǐ","他":"tā","以":"yǐ","出":"chū","去":"qù","跑":"pǎo","步":"bù","打":"dǎ","網":"wǎng","球":"qiú","冬":"dōng","常":"cháng","下":"xià","雪":"xuě","喜":"xǐ","歡":"huān","時":"shí","候":"hòu","家":"jiā","聽":"tīng","音":"yīn","樂":"yuè","星":"xīng","期":"qī","二":"èr","回":"huí","想":"xiǎng","給":"gěi","人":"rén","買":"mǎi","禮":"lǐ","物":"wù","爸":"bà","一":"yī","個":"ge","背":"bèi","包":"bāo","媽":"mā","帽":"mào","子":"zi","還":"hái","姊":"jiě","兩":"liǎng","盒":"hé","巧":"qiǎo","克":"kè","力":"lì","因":"yīn","為":"wèi","逛":"guàng","街":"jiē","所":"suǒ","上":"shàng","週":"zhōu","末":"mò","餐":"cān","廳":"tīng","吃":"chī","飯":"fàn","說":"shuō","那":"nà","酸":"suān","辣":"là","湯":"tāng","紅":"hóng","燒":"shāo","魚":"yú","都":"dōu","做":"zuò","好":"hǎo","們":"men","點":"diǎn","三":"sān","碗":"wǎn","盤":"pán","炒":"chǎo","青":"qīng","菜":"cài","炸":"zhá","豆":"dòu","腐":"fǔ","什":"shén","麼":"me","沒":"méi","麗":"lì","莎":"shā","高":"gāo","莉":"lì","亞":"yà","咖":"kā","啡":"fēi","店":"diàn","蛋":"dàn","糕":"gāo","她":"tā","愛":"ài","甜":"tián","東":"dōng","西":"xī","塊":"kuài","大":"dà","冰":"bīng","茶":"chá","杯":"bēi","雞":"jī","肉":"ròu","牛":"niú","奶":"nǎi","小":"xiǎo","今":"jīn","百":"bǎi","貨":"huò","公":"gōng","司":"sī","條":"tiáo","黑":"hēi","色":"sè","裙":"qún","件":"jiàn","運":"yùn","動":"dòng","衫":"shān","最":"zuì","近":"jìn","胖":"pàng","號":"hào","長":"cháng","褲":"kù","雖":"suī","然":"rán","白":"bái","看":"kàn","貴":"guì","信":"xìn","用":"yòng","卡":"kǎ","付":"fù","現":"xiàn","金":"jīn","凱":"kǎi","住":"zhù","區":"qū","開":"kāi","車":"chē","班":"bān","從":"cóng","到":"dào","鐘":"zhōng","頭":"tóu","搬":"bān","南":"nán","離":"lí","游":"yóu","泳":"yǒng","池":"chí","附":"fù","有":"yǒu","地":"dì","方":"fāng","我":"wǒ","間":"jiān","浴":"yù","室":"shì","廚":"chú","旁":"páng","邊":"biān","超":"chāo","級":"jí","市":"shì","場":"chǎng","對":"duì","面":"miàn","園":"yuán","何":"hé","希":"xī","九":"jiǔ","床":"chuáng","先":"xiān","洗":"xǐ","澡":"zǎo","帶":"dài","狗":"gǒu","準":"zhǔn","備":"bèi","早":"zǎo","衣":"yī","客":"kè","玩":"wán","電":"diàn","腦":"nǎo","遊":"yóu","戲":"xì","身":"shēn","體":"tǐ","肚":"dù","痛":"tòng","醫":"yī","院":"yuàn","生":"shēng","感":"gǎn","冒":"mào","應":"yīng","該":"gāi","多":"duō","喝":"hē","水":"shuǐ","休":"xiū","息":"xí","需":"xū","要":"yào","藥":"yào","忙":"máng","累":"lèi","但":"dàn","月":"yuè","四":"sì","假":"jià","過":"guò","算":"suàn","旅":"lǚ","行":"xíng","意":"yì","思":"si","興":"xìng","散":"sàn","聊":"liáo","晚":"wǎn","跟":"gēn","起":"qǐ",
+  "友":"yǒu","美":"měi","這":"zhè","個":"ge","禮":"lǐ","拜":"bài","是":"shì","的":"de","生":"shēng","日":"rì","請":"qǐng","中":"zhōng","安":"ān","起":"qǐ","她":"tā","送":"sòng","花":"huā","本":"běn","書":"shū","枝":"zhī","可":"kě","愛":"ài","鉛":"qiān","筆":"bǐ","和":"hé","蛋":"dàn","糕":"gāo","喜":"xǐ","些":"xiē","物":"wù","們":"men","點":"diǎn","心":"xīn","水":"shuǐ","果":"guǒ","大":"dà","家":"jiā","開":"kāi","心":"xīn",
+  "賣":"mài","手":"shǒu","機":"jī","公":"gōng","司":"sī","工":"gōng","作":"zuò","有":"yǒu","幾":"jǐ","個":"ge","同":"tóng","事":"shì","跟":"gēn","說":"shuō","六":"liù","半":"bàn","以":"yǐ","後":"hòu","洗":"xǐ","頭":"tóu","髮":"fà","然":"rán","吃":"chī","平":"píng","常":"cháng","杯":"bēi","汁":"zhī","開":"kāi","車":"chē","上":"shàng","班":"bān","中":"zhōng","午":"wǔ","樓":"lóu","餐":"cān","廳":"tīng","漢":"hàn","堡":"bǎo","可":"kě","樂":"lè","時":"shí","候":"hòu","還":"hái","冰":"bīng","淇":"qí","淋":"lín","五":"wǔ","下":"xià","離":"lí","辦":"bàn","公":"gōng","室":"shì",
+  "差":"chà","不":"bù","多":"duō","走":"zǒu","二":"èr","十":"shí","分":"fēn","鐘":"zhōng","做":"zuò","晚":"wǎn","飯":"fàn","先":"xiān","生":"shēng","一":"yī","起":"qǐ","了":"le","喜":"xǐ","歡":"huān","音":"yīn","樂":"yuè","看":"kàn","書":"shū","網":"wǎng","路":"lù","電":"diàn","影":"yǐng","玩":"wán","腦":"nǎo","遊":"yóu","戲":"xì","星":"xīng","期":"qī","六":"liù","朋":"péng","友":"yǒu","要":"yào","來":"lái","得":"děi","準":"zhǔn","備":"bèi","所":"suǒ","週":"zhōu","末":"mò","定":"dìng","忙":"máng",
+  "陳":"chén","老":"lǎo","師":"shī","短":"duǎn","信":"xìn","好":"hǎo","不":"bù","意":"yì","思":"si","感":"gǎn","冒":"mào","請":"qǐng","假":"jiǎ","明":"míng","天":"tiān","能":"néng","去":"qù","課":"kè","很":"hěn","抱":"bào","歉":"qiàn","麻":"má","煩":"fán","您":"nín","代":"dài","對":"duì","起":"qǐ","謝":"xiè",
+  "購":"gòu","物":"wù","因":"yīn","為":"wèi","方":"fāng","便":"biàn","又":"yòu","省":"shěng","只":"zhǐ","需":"xū","用":"yòng","下":"xià","單":"dān","商":"shāng","品":"pǐn","就":"jiù","會":"huì","送":"sòng","到":"dào","裡":"lǐ","過":"guò","注":"zhù","意":"yì","選":"xuǎn","擇":"zé","譽":"yù","避":"bì","免":"miǎn","假":"jiǎ","貨":"huò",
+  "了":"le","保":"bǎo","持":"chí","健":"jiàn","康":"kāng","我":"wǒ","應":"yīng","該":"gāi","蔬":"shū","菜":"cài","水":"shuǐ","果":"guǒ","少":"shǎo","油":"yóu","膩":"nì","太":"tài","甜":"tián","食":"shí","每":"měi","天":"tiān","喝":"hē","足":"zú","夠":"gòu","也":"yě","重":"zhòng","要":"yào","養":"yǎng","成":"chéng","良":"liáng","好":"hǎo","飲":"yǐn","食":"shí","習":"xí","慣":"guàn","身":"shēn","體":"tǐ","才":"cái","更":"gèng",
+  "學":"xué","習":"xí","外":"wài","語":"yǔ","耐":"nài","方":"fāng","法":"fǎ","堅":"jiān","持":"chí","練":"liàn","說":"shuō","讀":"dú","寫":"xiě","效":"xiào","果":"guǒ","幫":"bāng","助":"zhù","提":"tí","高":"gāo","語":"yǔ","言":"yán","能":"néng","力":"lì",
+  "打":"dǎ","算":"suàn","朋":"péng","友":"yǒu","去":"qù","電":"diàn","影":"yǐng","然":"rán","後":"hòu","一":"yī","起":"qǐ","如":"rú","果":"guǒ","天":"tiān","氣":"qì","好":"hǎo","可":"kě","能":"néng","公":"gōng","園":"yuán","散":"sàn","步":"bù","放":"fàng","鬆":"sōng","下":"xià","準":"zhǔn","備":"bèi","迎":"yíng","接":"jiē","新":"xīn","週":"zhōu",
+  "減":"jiǎn","少":"shǎo","使":"shǐ","用":"yòng","塑":"sù","膠":"jiāo","袋":"dài","隨":"suí","手":"shǒu","關":"guān","燈":"dēng","節":"jié","約":"yuē","垃":"lā","圾":"jī","分":"fēn","類":"lèi","份":"fèn","地":"dì","球":"qiú","變":"biàn","得":"de","乾":"gān","淨":"jìng","美":"měi","麗":"lì",
+  "上":"shàng","個":"ge","月":"yuè","去":"qù","旅":"lǚ","行":"xíng","邊":"biān","建":"jiàn","築":"zhú","現":"xiàn","代":"dài","食":"shí","物":"wù","也":"yě","好":"hǎo","吃":"chī","參":"cān","觀":"guān","了":"le","博":"bó","物":"wù","館":"guǎn","拍":"pāi","很":"hěn","多":"duō","照":"zhào","片":"piàn","希":"xī","望":"wàng","下":"xià","次":"cì","能":"néng","再":"zài",
+  "合":"hé","理":"lǐ","安":"ān","排":"pái","時":"shí","間":"jiān","提":"tí","高":"gāo","效":"xiào","率":"lǜ","先":"xiān","把":"bǎ","重":"zhòng","要":"yào","事":"shì","情":"qíng","完":"wán","再":"zài","處":"chǔ","理":"lǐ","小":"xiǎo","事":"shì","避":"bì","免":"miǎn","浪":"làng","費":"fèi","沒":"méi","有":"yǒu","義":"yì","活":"huó","生":"shēng","更":"gèng","有":"yǒu","條":"tiáo","理":"lǐ",
+  "已":"yǐ","經":"jīng","成":"chéng","為":"wèi","生":"shēng","活":"huó","中":"zhōng","不":"bù","可":"kě","缺":"quē","少":"shǎo","工":"gōng","具":"jù","聯":"lián","絡":"luò","查":"chá","資":"zī","料":"liào","付":"fù","錢":"qián","控":"kòng","制":"zhì","使":"shǐ","用":"yòng","保":"bǎo","護":"hù","眼":"yǎn","睛":"jīng",
+  "面":"miàn","試":"shì","穿":"chuān","著":"zhe","整":"zhěng","齊":"qí","態":"tài","度":"dù","自":"zì","信":"xìn","回":"huí","答":"dá","問":"wèn","題":"tí","清":"qīng","楚":"chǔ","誠":"chéng","實":"shí","提":"tí","前":"qián","了":"liǎo","解":"jiě","背":"bèi","景":"jǐng","介":"jiè","紹":"shào","讓":"ràng","印":"yìn","象":"xiàng","分":"fēn","數":"shù","更":"gèng",
+  "銀":"yín","行":"háng","開":"kāi","戶":"hù","需":"xū","要":"yào","帶":"dài","身":"shēn","份":"fèn","證":"zhèng","印":"yìn","章":"zhāng","填":"tián","寫":"xiě","表":"biǎo","格":"gé","後":"hòu","給":"gěi","你":"nǐ","張":"zhāng","提":"tí","款":"kuǎn","卡":"kǎ","設":"shè","定":"dìng","密":"mì","碼":"mǎ","記":"jì","住":"zhù","告":"gào","訴":"sù","別":"bié","人":"rén",
+  "最":"zuì","近":"jìn","天":"tiān","氣":"qì","變":"biàn","化":"huà","很":"hěn","大":"dà","早":"zǎo","上":"shàng","熱":"rè","晚":"wǎn","上":"shàng","卻":"què","變":"biàn","冷":"lěng","出":"chū","門":"mén","最":"zuì","好":"hǎo","帶":"dài","件":"jiàn","外":"wài","套":"tào","避":"bì","免":"miǎn","感":"gǎn","冒":"mào","記":"jì","得":"de","看":"kàn","天":"tiān","預":"yù","報":"bào","提":"tí","前":"qián","做":"zuò","準":"zhǔn","備":"bèi",
+  "搬":"bān","家":"jiā","了":"le","新":"xīn","離":"lí","公":"gōng","司":"sī","更":"gèng","近":"jìn","交":"jiāo","通":"tōng","方":"fāng","便":"biàn","整":"zhěng","理":"lǐ","東":"dōng","西":"xī","花":"huā","了":"le","不":"bù","少":"shǎo","住":"zhù","進":"jìn","來":"lái","後":"hòu","覺":"jué","得":"de","舒":"shū","服":"fú","鄰":"lín","居":"jū","也":"yě","友":"yǒu","好":"hǎo",
+  "圖":"tú","書":"shū","館":"guǎn","要":"yào","保":"bǎo","持":"chí","安":"ān","靜":"jìng","能":"néng","吃":"chī","東":"dōng","西":"xī","借":"jiè","需":"xū","辦":"bàn","借":"jiè","證":"zhèng","記":"jì","得":"de","按":"àn","時":"shí","歸":"guī","還":"huán","是":"shì","學":"xué","習":"xí","閱":"yuè","讀":"dú","好":"hǎo","地":"dì","方":"fāng",
+  "增":"zēng","強":"qiáng","體":"tǐ","力":"lì","改":"gǎi","善":"shàn","心":"xīn","情":"qíng","每":"měi","週":"zhōu","運":"yùn","動":"dòng","三":"sān","次":"cì","每":"měi","次":"cì","半":"bàn","小":"xiǎo","時":"shí","就":"jiù","能":"néng","感":"gǎn","受":"shòu","到":"dào","變":"biàn","化":"huà","跑":"pǎo","步":"bù","游":"yóu","泳":"yǒng","或":"huò","瑜":"yú","伽":"jiā","都":"dōu","是":"shì","不":"bù","錯":"cuò","選":"xuǎn","擇":"zé",
+  "燈":"dēng","壞":"huài","打":"dǎ","電":"diàn","話":"huà","師":"shī","傅":"fù","修":"xiū","他":"tā","檢":"jiǎn","查":"chá","電":"diàn","線":"xiàn","快":"kuài","就":"jiù","修":"xiū","好":"hǎo","學":"xué","會":"huì","簡":"jiǎn","單":"dān","方":"fāng","法":"fǎ","有":"yǒu","時":"shí","可":"kě","以":"yǐ","自":"zì","己":"jǐ","解":"jiě","決":"jué","問":"wèn","題":"tí",
+  "捷":"jié","運":"yùn","公":"gōng","車":"chē","或":"huò","騎":"qí","自":"zì","行":"xíng","車":"chē","準":"zhǔn","時":"shí","但":"dàn","人":"rén","多":"duō","便":"pián","宜":"yí","可":"kě","能":"néng","塞":"sāi","根":"gēn","據":"jù","距":"jù","離":"lí","和":"hé","時":"shí","間":"jiān","選":"xuǎn","擇":"zé","最":"zuì","適":"shì","合":"hé","方":"fāng","式":"shì",
+  "朋":"péng","友":"yǒu","為":"wèi","我":"wǒ","辦":"bàn","了":"le","生":"shēng","日":"rì","派":"pài","對":"duì","吃":"chī","蛋":"dàn","糕":"gāo","唱":"chàng","了":"le","我":"wǒ","收":"shōu","到":"dào","很":"hěn","實":"shí","用":"yòng","禮":"lǐ","物":"wù","非":"fēi","常":"cháng","開":"kāi","心":"xīn","這":"zhè","是":"shì","一":"yī","個":"ge","難":"nán","忘":"wàng","日":"rì","子":"zi",
+  "感":"gǎn","冒":"mào","時":"shí","要":"yào","多":"duō","休":"xiū","息":"xí","如":"rú","果":"guǒ","發":"fā","燒":"shāo","或":"huò","咳":"ké","嗽":"sòu","很":"hěn","嚴":"yán","重":"zhòng","應":"yīng","該":"gāi","去":"qù","看":"kàn","醫":"yī","生":"shēng","按":"àn","時":"shí","吃":"chī","藥":"yào","病":"bìng","才":"cái","會":"huì","快":"kuài","點":"diǎn","好":"hǎo","起":"qǐ","來":"lái",
+  "找":"zhǎo","工":"gōng","作":"zuò","可":"kě","以":"yǐ","先":"xiān","在":"zài","網":"wǎng","上":"shàng","看":"kàn","招":"zhāo","聘":"pìn","資":"zī","訊":"xùn","準":"zhǔn","備":"bèi","好":"hǎo","履":"lǚ","歷":"lì","投":"tóu","給":"gěi","適":"shì","合":"hé","公":"gōng","司":"sī","面":"miàn","試":"shì","前":"qián","要":"yào","練":"liàn","習":"xí","回":"huí","答":"dá","問":"wèn","題":"tí","保":"bǎo","持":"chí","積":"jī","極":"jí","態":"tài","度":"dù",
+  "家":"jiā","人":"rén","之":"zhī","間":"jiān","應":"yīng","該":"gāi","溝":"gōu","通":"tōng","互":"hù","相":"xiāng","理":"lǐ","解":"jiě","如":"rú","果":"guǒ","有":"yǒu","不":"bù","同":"tóng","意":"yì","見":"jiàn","冷":"lěng","靜":"jìng","地":"de","討":"tǎo","論":"lùn","吵":"chǎo","架":"jià","良":"liáng","好":"hǎo","庭":"tíng","關":"guān","係":"xì","讓":"ràng","生":"shēng","活":"huó","更":"gèng","快":"kuài","樂":"lè"
+};
+
+var pollTimer=null;
+var startTime=null,totTyped=0,errTyped=0,corrTyped=0,active=false;
+var passage="",cursor=0,showPY=true,prevVal="";
+var currentIdx=-1;
+// charState: array of "pending"|"correct"|"wrong" for each non-punct char
+var charState=[];
+// mapping from cursor index to passage index
+var charMap=[];// charMap[cursorIdx] = passageIdx
+
+function isPunct(c){return"。，！？、；：「」『』…".includes(c);}
+
+function goHome(){
+  stopAll();
+  document.getElementById("ss").style.display="block";
+  document.getElementById("gs").style.display="none";
+  document.getElementById("rs").style.display="none";
+}
+function stopAll(){
+  if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
+  active=false;
+}
+function togglePY(){
+  showPY=document.getElementById("pyck2").checked;
+  renderAll();
+}
+
+function startGame(){
+  stopAll();
+  showPY=document.getElementById("pyck").checked;
+  var idx=Math.floor(Math.random()*PASSAGES.length);
+  currentIdx=idx;
+  loadPassage(idx);
+}
+
+function nextPassage(){
+  stopAll();
+  // sync showPY from whichever checkbox is visible
+  var ck=document.getElementById("pyck2")||document.getElementById("pyck");
+  if(ck) showPY=ck.checked;
+  // Pick a different passage than current
+  var idx;
+  do { idx=Math.floor(Math.random()*PASSAGES.length); } while(idx===currentIdx && PASSAGES.length>1);
+  currentIdx=idx;
+  loadPassage(idx);
+}
+
+function loadPassage(idx){
+  var L=PASSAGES[idx];
+  passage=L.p;
+  startTime=null;
+  totTyped=0;errTyped=0;corrTyped=0;cursor=0;prevVal="";
+
+  // Build charMap: only non-punct chars are "typeable"
+  charMap=[];
+  for(var i=0;i<passage.length;i++){
+    if(!isPunct(passage[i])) charMap.push(i);
+  }
+  charState=new Array(charMap.length).fill("pending");
+
+  document.getElementById("sw").textContent="0";
+  document.getElementById("se").textContent="0";
+  document.getElementById("sa").textContent="－";
+  document.getElementById("spg").textContent="0%";
+  document.getElementById("lessonlbl").textContent=L.t;
+  document.getElementById("dt").textContent="";
+  if(document.getElementById("pyck2"))document.getElementById("pyck2").checked=showPY;
+
+  renderAll();
+  document.getElementById("ss").style.display="none";
+  document.getElementById("rs").style.display="none";
+  document.getElementById("gs").style.display="block";
+
+  var outbtn=document.getElementById("outbtn");
+  outbtn.disabled=true;
+  outbtn.style.opacity=".35";
+
+  var inp=document.getElementById("inp");
+  inp.value="";
+  inp.removeEventListener("compositionend",onCompose);
+  inp.removeEventListener("input",onInput);
+  inp.addEventListener("compositionend",onCompose);
+  inp.addEventListener("input",onInput);
+  inp.focus();
+  active=true;
+}
+
+function renderAll(){
+  var cw=document.getElementById("cw");
+  cw.innerHTML="";
+  var ci=0;// cursor index into charMap
+  for(var i=0;i<passage.length;i++){
+    var ch=passage[i];
+    var isp=isPunct(ch);
+    var cls;
+    if(isp){
+      cls="ch punct";
+    } else {
+      var st=charState[ci];
+      var isCur=(ci===cursor && ci<charMap.length);
+      if(isCur) cls="ch cur";
+      else if(st==="correct") cls="ch correct";
+      else if(st==="wrong") cls="ch wrong";
+      else cls="ch pending";
+      ci++;
+    }
+    var d=document.createElement("span");
+    d.className=cls;
+    d.id="c"+i;
+    var hz=document.createElement("span");
+    hz.className="hz";
+    hz.textContent=ch;
+    d.appendChild(hz);
+    if(showPY&&!isp){
+      var ps=document.createElement("span");
+      ps.className="py";
+      ps.textContent=PY[ch]||"";
+      d.appendChild(ps);
+    }
+    cw.appendChild(d);
+  }
+}
+
+function updateChar(cursorIdx,state){
+  charState[cursorIdx]=state;
+  var passIdx=charMap[cursorIdx];
+  var el=document.getElementById("c"+passIdx);
+  if(!el)return;
+  el.className="ch "+state;
+}
+function markCursor(cursorIdx){
+  if(cursorIdx>=charMap.length)return;
+  var passIdx=charMap[cursorIdx];
+  var el=document.getElementById("c"+passIdx);
+  if(!el)return;
+  el.className="ch cur";
+  // scroll into view
+  el.scrollIntoView({block:"nearest",behavior:"smooth"});
+}
+
+var composing=false;
+function onCompose(e){
+  // compositionend gives us the final confirmed character(s)
+  var s=e.data||"";
+  for(var i=0;i<s.length;i++) processChar(s[i]);
+  // clear the textarea so it stays empty
+  setTimeout(function(){
+    var el=document.getElementById("inp");
+    if(el){el.value="";}
+  },0);
+}
+function onInput(e){
+  // Only handle non-composition input (e.g. direct ASCII, backspace side effects)
+  if(e.isComposing||composing) return;
+  var el=document.getElementById("inp");
+  if(!el) return;
+  var val=el.value;
+  // Process each new character that appeared
+  for(var i=0;i<val.length;i++) processChar(val[i]);
+  el.value="";
+}
+function processChar(ch){
+  if(!active)return;
+  if(isPunct(ch))return;
+  if(cursor>=charMap.length)return;// already done
+
+  // Start timer on first keypress
+  if(!startTime) startTime=Date.now();
+
+  var target=passage[charMap[cursor]];
+  totTyped++;
+
+  if(ch===target){
+    updateChar(cursor,"correct");
+    corrTyped++;
+  } else {
+    updateChar(cursor,"wrong");
+    errTyped++;
+  }
+  cursor++;
+  if(cursor<charMap.length){
+    markCursor(cursor);
+  } else {
+    // Finished!
+    active=false;
+    stopAll();
+    var outbtn=document.getElementById("outbtn");
+    outbtn.disabled=false;
+    outbtn.style.opacity="1";
+    outbtn.textContent="🎉 輸出成績！";
+  }
+
+  // Update stats
+  document.getElementById("sw").textContent=corrTyped;
+  document.getElementById("se").textContent=errTyped;
+  var acc=totTyped>0?Math.round(corrTyped/totTyped*100):0;
+  document.getElementById("sa").textContent=acc+"%";
+  var pct=Math.round(cursor/charMap.length*100);
+  document.getElementById("spg").textContent=pct+"%";
+}
+
+function showResult(){
+  stopAll();
+  var elapsed=startTime?(Date.now()-startTime)/1000:1;
+  var wpm=Math.round(corrTyped/(elapsed/60));
+  var acc=totTyped>0?Math.round(corrTyped/totTyped*100):0;
+  document.getElementById("rcpm").textContent=wpm;
+  document.getElementById("rtot").textContent=totTyped;
+  document.getElementById("rerr").textContent=errTyped;
+  document.getElementById("rtime").textContent=Math.round(elapsed);
+  document.getElementById("racc").textContent=acc+"%";
+
+  var msg;
+  if(wpm<10) msg="加油！繼續練習，你一定會越來越快的！💪";
+  else if(wpm<20) msg="不錯的開始！繼續努力，進步空間很大！🌱";
+  else if(wpm<35) msg="很好！你已掌握基本的中文輸入技巧！👍";
+  else if(wpm<50) msg="相當流暢！你的中文打字越來越厲害了！🌟";
+  else if(wpm<70) msg="太棒了！已達進階水準，繼續保持！🏆";
+  else msg="驚人的速度！你是中文打字高手！🚀";
+
+  if(acc<70) msg+=" 記得注意正確率喔！";
+
+  document.getElementById("renc").textContent=msg;
+  document.getElementById("gs").style.display="none";
+  document.getElementById("rs").style.display="block";
+}
+</script>
+</body>
+</html>
